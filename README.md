@@ -2,26 +2,32 @@
 
 BOSS is acronym for Binary Object Streamable Storage.
 
-The very space-effective, platfomr-independent streamable and traversable typed binary protocol.
-Allow to effectively store small or
-any
-sized
-integers, strings or binary data of any size, floats and doubles, arrays and hashes in a very effective way. It caches
-repeating objects and stores/restores links to objects.
+The very space-effective, platform-independent^ streamable and traversable
+typed binary protocol. Allow to effectively store small or any sized integers,
+strings or binary data of any size, floats and doubles, arrays and hashes in a
+very effective way. It caches repeating objects and stores/restores links to
+objects.
 
-Streamable means that you can use a pipe (tcp/ip, wahtever), put the object at one side and load it on other, one-by-one,
-and caching and links will be restored properly.
+The protocol allow to effectively store texts and binary data of absolutely any
+size, signed integers of absolutely any size, arrays and hashes with no limit
+on items and overall gross size. It is desirable to use build-in compression when
+appropriate.
+
+Streamable means that you can use a pipe (tcp/ip, wahtever), put the object at
+one side and load it on other, one-by-one, and caching and links will be
+restored properly.
 
 Initially, this protocol was intended to be used in secure communications. Its
-main goal was to very effective data sending and is a great replacement for json/boss/whatever. For example, typical
-JSON reduces in size twice with Boss.
+main goal was to very effective data sending and is a great replacement for
+json/boss/whatever. For example, typical JSON reduces in size twice with Boss.
 
 Boss protocol also allow to transparently compress its representations.
 
-*Attention* ruby version is under final development, its streaming support may not work as expected, while the rest
-seem to work just fine.
+*Attention* ruby version is under final development, its streaming support may
+not work as expected, while the rest seem to work just fine.
 
-There are versions in C and Python that are in most part ready.
+There are versions in C and Python that are in most part ready but are parts
+in other systems and need to be extracted first.
 
 ## Installation
 

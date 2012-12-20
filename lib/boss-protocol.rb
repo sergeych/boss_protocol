@@ -44,8 +44,12 @@ require 'bzip2'
 # No object serialization yet, no callables and bound methods - these appear to be
 # non portable between platoforms.
 #
+# Please note that most of this code was developed in 2008 so it is kind of old ;)
+# though working.
+
 module Boss
-  # Basic types
+
+                # Basic types
   TYPE_INT   = 0
   TYPE_EXTRA = 1
   TYPE_NINT  = 2
@@ -104,6 +108,10 @@ module Boss
       @cache = { nil => 0 }
     end
 
+    ##
+    # same as put but automatically select and use proper compression. Parser.get
+    # will automatically decompress.
+    #
     def put_compressed ob
       data = Boss.dump(ob)
       whdr TYPE_EXTRA, TCOMPRESSED
@@ -186,10 +194,9 @@ module Boss
 
     ##
     # Get the result as string, may not work if
-    # some specific IO instance is passsed to constructor.
-    # works well with default contructor or StringIO
+    # some specific IO instance is passed to constructor.
+    # works well with default constructor or StringIO
     def string
-      #      p "string!! #{@io.string}"
       @io.string
     end
 
@@ -273,12 +280,10 @@ module Boss
     def wdouble val
       wbin [val].pack('E')
     end
-
-
   end
 
   ##
-  # Parser incapsulates IO-like cource and provides deserializing of
+  # Parser implements IO-like behavior and provides deserializing of
   # BOSS objects. Parser can store multiple root objects and share same
   # object cache for all them
   class Parser
@@ -305,9 +310,9 @@ module Boss
       code, value = rhdr
       case code
         when TYPE_INT
-          return value
+          value
         when TYPE_NINT
-          return -value
+          -value
         when TYPE_EXTRA
           case value
             when TTRUE
@@ -342,18 +347,18 @@ module Boss
           s = rbin value
           s.force_encoding code == TYPE_BIN ? Encoding::BINARY : Encoding::UTF_8
           @cache << s
-          return s
+          s
         when TYPE_LIST
           #        p "items", value
           @cache << (list = [])
           value.times { list << get }
-          return list
+          list
         when TYPE_DICT
           @cache << (dict = { })
           value.times { dict[get] = get }
-          return dict
+          dict
         when TYPE_CREF
-          return @cache[value]
+          @cache[value]
         else
           raise UnknownTypeException
       end
@@ -421,6 +426,10 @@ module Boss
       rbin(8).unpack('E')[0]
     end
 
+    def rfloat
+      rbin(4).unpack('e')[0]
+    end
+
     def rbin(length)
       @io.sysread length
     end
@@ -462,6 +471,10 @@ module Boss
     f.string
   end
 
+  ##
+  # Just like Boss.dump but automatically use proper compression
+  # depending on the data size. Boss.load or Boss.load_all will
+  # automatically decompress the data
   def Boss.dump_compressed(*roots)
     f = f = Formatter.new
     roots.each { |r| f.put_compressed r }
