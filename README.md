@@ -74,9 +74,8 @@ To use the transparent compression:
 
 ## Streaming sample
 
-Cehck the code in samples folder.
-
-This sample shows boss object passing between 2 forked processes:
+This sample shows boss object hierarchies passing between 2 forked processes
+using a pipe:
 
     if fork
       wr.close
@@ -96,15 +95,16 @@ This sample shows boss object passing between 2 forked processes:
       out << ["Foo", "bar"]
       out.put_compressed "Zz"*62
       out << ["Hello", "world", "!"]
-      out << { "Thats all" => "folks!" }
+      out << { "That's all" => "folks!" }
       wr.close
     end
 
-Boss ways in the sample are identical; second one (with get) may be sometimes
+Both ways in the sample are identical; second one (with get) may be sometimes
 more convenient, say, to terminate object polling on some condition before eof.
 
-So, all you need is IO-like object that provide io.read(length) and io.write(data) to
-read/write binary data. Usual files, pipes, tcp sockets, stringIO - everything is ok.
+All you need is IO-like object that provide io.read(length) on the read side
+and io.write(data) on another, capable to read/write binary data. Usual files,
+pipes, tcp sockets, stringIO - everything is ok.
 
 The protocol could be very effectively used to form higher level protocols over the
 network as it caches data on the fly and can provide links (if used with
