@@ -82,6 +82,7 @@ module Boss
   TFALSE = 13
 
   TCOMPRESSED = 14
+  TTIME = 15
 
   def checkArg(cond, msg=nil)
     raise ArgumentError unless cond
@@ -182,6 +183,9 @@ module Boss
           whdr TYPE_EXTRA, ob ? TTRUE : TFALSE
         when nil
           whdr TYPE_CREF, 0
+        when Time
+          whdr TYPE_EXTRA, TTIME
+          wrenc ob.to_i
         else
           error = "error: not supported object: #{ob}, #{ob.class}"
           p error
@@ -340,6 +344,8 @@ module Boss
                 else
                   raise UnknownTypeException, "type #{type}"
               end
+            when TTIME
+              Time.at renc
             else
               raise UnknownTypeException
           end

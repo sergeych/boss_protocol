@@ -23,10 +23,21 @@ json/boss/whatever. For example, typical JSON reduces in size twice with Boss.
 
 Boss protocol also allow to transparently compress its representations.
 
-*Attention* ruby version is under final development, its streaming support may
-not work as expected, while the rest seem to work just fine.
+Supported types:
 
-There are versions in C and Python that are in most part ready but are parts
+ * Signed integers of any length
+ * Signed floats and doubles (4 or 8 bytes)
+ * Boolean values (true/false)
+ * UTF-8 encoded texts, any length
+ * Binary data, any length
+ * Time objects (rounded to 1s resolution)
+ * Arrays with any number of elements
+ * Hashes with any keys and values and unlimited length
+ * Reference to the object that already was serialized
+
+There is a pending extension to serialize user types that will be available
+soon or even faster - leave me a request in issues. There are also versions
+in C and Python that are in most part ready but are parts
 in other systems and need to be extracted first.
 
 ## Installation

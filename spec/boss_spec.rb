@@ -15,7 +15,7 @@ describe 'Boss' do
   end
 
   it 'should perform compatible decode' do
-    Vectors.each do |a,b|
+    Vectors.each do |a, b|
       Boss.load(a).should == b
     end
   end
@@ -36,16 +36,23 @@ describe 'Boss' do
   end
 
   it 'should properly encode nil' do
-      round_check(1)
-      round_check(nil)
-      round_check([1])
-      round_check([nil,nil,nil,3,4,5, nil])
+    round_check(1)
+    round_check(nil)
+    round_check([1])
+    round_check([nil, nil, nil, 3, 4, 5, nil])
+  end
+
+  it 'should encode Time' do
+    # Time is rounded to seconds on serialization, so we need
+    # take care of the comparison
+    t = Time.now
+    Boss.load(Boss.dump t).should be_within(1).of(t)
   end
 
   it 'should cache data' do
-    a = [1,2,3,4]
-    ca = { 1 => 55 }
-    b, c, d, e, f, g = Boss.load(Boss.dump([a,a,ca,ca, "oops", "oops"]))
+    a                = [1, 2, 3, 4]
+    ca               = { 1 => 55 }
+    b, c, d, e, f, g = Boss.load(Boss.dump([a, a, ca, ca, "oops", "oops"]))
     a.should == b
     b.should == c
     b.should be_eql(c)
@@ -65,30 +72,30 @@ describe 'Boss' do
   end
 
   it 'should decode one by one using block' do
-    args = [1,2,3,4,5]
-    s = Boss.dump(*args)
-    res = []
-    res = Boss.load(s) { |x| x }
+    args = [1, 2, 3, 4, 5]
+    s    = Boss.dump(*args)
+    res  = []
+    res  = Boss.load(s) { |x| x }
     args.should == res
   end
 
   it 'should cache arrays and hashes too' do
     d = { "Hello" => "world" }
-    a = [112,11]
-    r = Boss.load_all(Boss.dump( a,d,a,d ))
-    [a,d,a,d].should == r
+    a = [112, 11]
+    r = Boss.load_all(Boss.dump(a, d, a, d))
+    [a, d, a, d].should == r
     r[1].should be_equal(r[3])
     r[0].should be_equal(r[2])
   end
 
   it 'should properly encode multilevel structures' do
-    root = { "level" => 1}
-    p = root
+    root = { "level" => 1 }
+    p    = root
     200.times { |n|
-      x = { "level" => n+2}
-      p['data'] = x
+      x            = { "level" => n+2 }
+      p['data']    = x
       p['payload'] = 'great'
-      p = x
+      p            = x
     }
     round_check root
   end
@@ -97,13 +104,13 @@ describe 'Boss' do
   it 'should effectively compress/decompress' do
     # No compression
     data = "Too short"
-    x0 = Boss.dump_compressed data
+    x0   = Boss.dump_compressed data
     Boss.load(x0).should == data
     x0.length.should <= (data.length + 3)
 
     # short compression: zlib
     data = "z" * 1024
-    x1 = Boss.dump_compressed data
+    x1   = Boss.dump_compressed data
     Boss.load(x1).should == data
     x1.length.should <= (data.length/10)
 
@@ -131,7 +138,7 @@ describe 'Boss' do
   Vectors = [['8', 7], ["\xb8F", 70], [".\x00\x08\n8:", [0, 1, -1, 7, -7]], ["\xc8p\x11\x01", 70000],
              ['+Hello', 'Hello'], [',Hello', bytes!('Hello'), 2, 4, 4, 1]]
 
-  CompressedTestJson =  <<-End
+  CompressedTestJson = <<-End
 eJztfVlz20iy7vv5FQi9dHcExca++OWGLLvdXmTrWOrxmbm+MVEkimRZIMDG
 Ipk+0f/9ZmZVAQVQpETKmhhPaKKn3ZaIIlCV+SGXLzP/978s+N/RktfsyHpm
 /e9RVbO6qY6eHRVXR3+N5G9LXq2KvOLyE6LmS/jA/4X/So+e+bEzOsrZksMl
@@ -462,6 +469,6 @@ mizfqNHM4GxlFv0UHm8hpGOGRQjy2UGa17xW1dcpFlyBMPF0PL5HbDcJfHsz
 GOPFwUaiO8beVd7QYfG/2yg0t2XZnuHHyrU8/A4qXN/xDugS4Wqi7R3L/rgI
 ZPRlks8o0Gc+RzbVHfjjBc+8ffGnPSaQaU6ZDxOCIu82CDqxTouy6UhoFPN1
 NhpXhYHtuZti57hJEhySiPp/f/3XX//1/wEcUSZF
-End
+  End
 
 end
