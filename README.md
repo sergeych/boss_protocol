@@ -43,7 +43,7 @@ Or install it yourself as:
 
     $ gem install boss-protocol
 
-## Usage
+## Simple Usage
 
     1.9.3-p327 :011 > require 'boss-protocol'
      => false
@@ -72,7 +72,42 @@ To use the transparent compression:
     1.9.3-p327 :017 > data == Boss.load(x)
      => true
 
-Streaming docs are in progress. Please wait.
+## Streaming sample
+
+Cehck the code in samples folder.
+
+This sample shows boss object passing between 2 forked processes:
+
+    if fork
+      wr.close
+      if true
+        # You can do it with block:
+        Boss::Parser.new(rd).each { |obj| puts "Got an object: #{obj}" }
+      else
+        # You can do it without block too:
+        input = Boss::Parser.new rd
+        puts "Got an object: #{input.get}" while !input.eof?
+      end
+      rd.close
+      Process.wait
+    else
+      rd.close
+      out = Boss::Formatter.new wr
+      out << ["Foo", "bar"]
+      out.put_compressed "Zz"*62
+      out << ["Hello", "world", "!"]
+      out << { "Thats all" => "folks!" }
+      wr.close
+    end
+
+Boss ways in the sample are identical; second one (with get) may be sometimes
+more convenient, say, to terminate object polling on some condition before eof.
+
+So, all you need is IO-like object that provide io.read(length) and io.write(data) to
+read/write binary data. Usual files, pipes, tcp sockets, stringIO - everything is ok.
+
+The protocol could be very effectively used to form higher level protocols over the
+network as it caches data on the fly and can provide links (if used with
 
 ## Contributing
 

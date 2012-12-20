@@ -268,7 +268,7 @@ module Boss
     # write binary value
     #
     def wbin(bb)
-      @io.syswrite bb
+      @io.write bb
     end
 
     ##
@@ -373,7 +373,6 @@ module Boss
     ##
     # yields all objects in the stream
     def each
-      @io.rewind
       yield get until eof?
     end
 
@@ -431,7 +430,7 @@ module Boss
     end
 
     def rbin(length)
-      @io.sysread length
+      @io.read length
     end
   end
 

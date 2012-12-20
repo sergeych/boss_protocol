@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.authors       = ["sergeych"]
   gem.email         = ["real.sergeych@gmail.com"]
   gem.description   = %q{Binary streamable bit-effective protocol to effectively store object tree hierarchies}
-  gem.summary       = %q{Traversable and streamable to some extend protocol supports lists, hashes, caching,
+  gem.summary       = %q{Traversable and streamable to protocol supports lists, hashes, caching,
 compression and more}
   gem.homepage      = ""
 
