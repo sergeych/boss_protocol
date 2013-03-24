@@ -30,7 +30,7 @@ Supported types:
  * Boolean values (true/false)
  * UTF-8 encoded texts, any length
  * Binary data, any length
- * Time objects (rounded to 1s resolution)
+ * Time objects (date and time rounded to 1 second resolution)
  * Arrays with any number of elements
  * Hashes with any keys and values and unlimited length
  * Reference to the object that already was serialized
@@ -119,6 +119,13 @@ pipes, tcp sockets, stringIO - everything is ok.
 
 The protocol could be very effectively used to form higher level protocols over the
 network as it caches data on the fly and can provide links (if used with
+
+## Note about caching objects
+
+When reconstructing object tree, cache is used for strings. As ruby language hash
+mutable strings, it might cause side effects, as all ecounters of a given string
+will share same object after reconstruction. For this reason, ruby implementation
+freezes shared strings.
 
 ## Contributing
 

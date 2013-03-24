@@ -364,7 +364,9 @@ module Boss
           value.times { dict[get] = get }
           dict
         when TYPE_CREF
-          @cache[value]
+          x = @cache[value]
+          x.freeze if x.is_a?(String)
+          x
         else
           raise UnknownTypeException
       end

@@ -63,6 +63,7 @@ describe 'Boss' do
 
     f.should == "oops"
     g.should == f
+    g.should be_frozen
     g.should be_equal(f)
   end
 
