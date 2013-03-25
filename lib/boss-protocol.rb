@@ -3,7 +3,6 @@ require "boss-protocol/version"
 # Encoding: utf-8
 require 'stringio'
 require 'zlib'
-require 'bzip2'
 
 # Copyright (c) 2008-2012 by sergeych (real.sergeych@gmail.com)
 #
@@ -33,6 +32,9 @@ require 'bzip2'
 
 ##
 # Boss protocol version 1.2 basic implementation
+#
+# Attn! We removed Bzip2 compression for the sake of compatibility. We may add it back when situation
+# with bz2 implementations on various platforms will be eased
 #
 # 1.2 version adds support for booelans and removes support for python __reduce__ - based objects
 #       as absolutely non portable. It also introduces
@@ -123,8 +125,10 @@ module Boss
                  data = Zlib::Deflate.new.deflate(data, Zlib::FINISH)
                  1
                else
-                 data = Bzip2.compress data
-                 2
+                 data = Zlib::Deflate.new.deflate(data, Zlib::FINISH)
+                 1
+                 #data = Bzip2.compress data
+                 #2
              end
       whdr type, data.length
       wbin data
@@ -339,8 +343,8 @@ module Boss
                   Boss.load data
                 when 1
                   Boss.load Zlib::Inflate.new(Zlib::MAX_WBITS).inflate(data)
-                when 2
-                  Boss.load Bzip2.uncompress data
+                #when 2
+                #  Boss.load Bzip2.uncompress data
                 else
                   raise UnknownTypeException, "type #{type}"
               end

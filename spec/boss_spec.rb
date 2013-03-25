@@ -116,11 +116,11 @@ describe 'Boss' do
     x1.length.should <= (data.length/10)
 
     # hevay compression on big data
-    data = JSON.parse(Zlib::Inflate.new(Zlib::MAX_WBITS).inflate(Base64::decode64(CompressedTestJson)))
-    round_check data
-    x2 = Boss.dump_compressed(data)
-    Boss.load(x2).should == data
-    x2.length.should < 13700
+    #data = JSON.parse(Zlib::Inflate.new(Zlib::MAX_WBITS).inflate(Base64::decode64(CompressedTestJson)))
+    #round_check data
+    #x2 = Boss.dump_compressed(data)
+    #Boss.load(x2).should == data
+    #x2.length.should < 13700
   end
 
 
