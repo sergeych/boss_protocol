@@ -101,6 +101,30 @@ describe 'Boss' do
     round_check root
   end
 
+  it 'shold encode hash/array ancestors too' do
+    class MyHash < Hash
+      def []= k, v
+        super k.to_s, v.to_s
+      end
+    end
+
+    class MyArray < Array
+      def []= i, val
+        super i.to_i, val.to_s
+      end
+    end
+
+    h = MyHash.new
+    h[:one] = 1
+    h[:two] = 2
+    round_check h
+
+    a = MyArray.new
+    a["0"] = :zero
+    a["1"] = :one
+    round_check a
+
+  end
 
   it 'should effectively compress/decompress' do
     # No compression
@@ -123,6 +147,10 @@ describe 'Boss' do
     #x2.length.should < 13700
   end
 
+  it 'should raise proper error' do
+    class MyObject; end
+    -> { Boss.dump MyObject.new }.should raise_error(Boss::NotSupportedException)
+  end
 
   def round_check(ob)
     ob.should == Boss.load(Boss.dump(ob))

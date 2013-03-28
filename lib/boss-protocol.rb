@@ -51,6 +51,7 @@ require 'zlib'
 
 module Boss
 
+  class NotSupportedException < StandardError; end
                 # Basic types
   TYPE_INT   = 0
   TYPE_EXTRA = 1
