@@ -36,6 +36,8 @@ require 'zlib'
 # Attn! We removed Bzip2 compression for the sake of compatibility. We may add it back when situation
 # with bz2 implementations on various platforms will be eased
 #
+# 1.3 Stream mode added
+#
 # 1.2 version adds support for booelans and removes support for python __reduce__ - based objects
 #       as absolutely non portable. It also introduces
 #
@@ -51,8 +53,9 @@ require 'zlib'
 
 module Boss
 
-  class NotSupportedException < StandardError; end
-                # Basic types
+  class NotSupportedException < StandardError;
+  end
+  # Basic types
   TYPE_INT   = 0
   TYPE_EXTRA = 1
   TYPE_NINT  = 2
@@ -85,7 +88,9 @@ module Boss
   TFALSE = 13
 
   TCOMPRESSED = 14
-  TTIME = 15
+  TTIME       = 15
+
+  XT_STREAM_MODE = 16
 
   def checkArg(cond, msg=nil)
     raise ArgumentError unless cond
@@ -94,7 +99,6 @@ module Boss
   class UnknownTypeException < Exception;
   end
 
-  ##
   # Formats ruby object hierarchies with BOSS
   # notation
   #
@@ -109,6 +113,20 @@ module Boss
     def initialize(dst=nil)
       @io = dst ? dst : StringIO.new('', 'wb')
       @io.set_encoding 'binary'
+      @cache = { nil => 0 }
+    end
+
+
+    # Switch to stream mode. Stream mode limits cache using to strings only in LRU
+    # mode using specified parameters. Stream mode writes a marker into output so
+    # decoder knows it.
+    # @param max_string_size maximum allowed size of the string to be cached.
+    #        longer strings will not be cached
+    # @param max_cache_entries
+    def stream_mode max_cache_entries, max_string_size
+      @max_cache_entries, @max_string_size = max_cache_entries, max_string_size
+      whdr TYPE_EXTRA, XT_STREAM_MODE
+      self << max_cache_entries.to_i << max_string_size.to_i
       @cache = { nil => 0 }
     end
 
@@ -128,8 +146,8 @@ module Boss
                else
                  data = Zlib::Deflate.new.deflate(data, Zlib::FINISH)
                  1
-                 #data = Bzip2.compress data
-                 #2
+               #data = Bzip2.compress data
+               #2
              end
       whdr type, data.length
       wbin data
@@ -211,18 +229,39 @@ module Boss
 
     private
 
-    ##
     # Write cache ref if the object is cached, and return true
     # otherwise store object in the cache. Caller should
     # write object to @io if notCached return true, and skip
     # writing otherwise
+
     def notCached(obj)
       n = @cache[obj]
       if n
         whdr TYPE_CREF, n
         false
       else
-        @cache[obj] = @cache.length
+        # Check stream mode
+        if @max_string_size
+          if obj.is_a?(String) && obj.length <= @max_string_size
+            if @cache.length > @max_cache_entries
+              minIndex = @cache.length - @max_cache_entries
+              key      = nil
+              @cache.each { |k, v|
+                next if k == nil
+                if v == minIndex
+                  key = k
+                else
+                  @cache[k] = v - 1
+                end
+              }
+              key == nil and raise "Cache implementation failed"
+              @cache.delete key
+            end
+            @cache[obj] = @cache.length
+          end
+        else
+          @cache[obj] = @cache.length
+        end
         true
       end
     end
@@ -351,21 +390,26 @@ module Boss
               end
             when TTIME
               Time.at renc
+            when XT_STREAM_MODE
+              @cache = [nil]
+              @max_cache_entries = get + 1 # Count 0th element (always 0)
+              @max_string_size = get
+              get
             else
               raise UnknownTypeException
           end
         when TYPE_TEXT, TYPE_BIN
           s = rbin value
           s.force_encoding code == TYPE_BIN ? Encoding::BINARY : Encoding::UTF_8
-          @cache << s
+          cache_object s
           s
         when TYPE_LIST
           #        p "items", value
-          @cache << (list = [])
+          cache_object (list = [])
           value.times { list << get }
           list
         when TYPE_DICT
-          @cache << (dict = { })
+          cache_object (dict = {})
           value.times { dict[get] = get }
           dict
         when TYPE_CREF
@@ -390,6 +434,19 @@ module Boss
     end
 
     private
+
+    def cache_object object
+      # Stream mode?
+      if @max_cache_entries
+        if object.is_a?(String) && object.length <= @max_string_size
+          # Should cache
+          @cache << object
+          @cache.delete_at(1) if @cache.length > @max_cache_entries
+        end
+      else
+        @cache << object
+      end
+    end
 
     ##
     # Read header and return code,value

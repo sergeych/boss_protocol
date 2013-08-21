@@ -152,6 +152,28 @@ describe 'Boss' do
     -> { Boss.dump MyObject.new }.should raise_error(Boss::NotSupportedException)
   end
 
+  it 'should implement stream mode' do
+    out = Boss::Formatter.new
+    out.stream_mode 3, 10
+    3.times { out << "String too long" }
+    (1..6).each { |n| out << "test#{n}" }
+    (4..6).each { |n| out << "test#{n}" }
+    (4..6).each { |n| out << "test#{n}" }
+    out << "test7"
+
+    res = "\x81\x18P{String too long{String too long{String too long+test1+test2+test3+test4+test5+test6\r\x15\x1D\r\x15\x1D+test7"
+    res.force_encoding 'binary'
+    out.string.should == res
+
+    inp = Boss::Parser.new out.string
+
+    3.times { inp.get.should == "String too long" }
+    (1..6).each { |n| inp.get.should == "test#{n}" }
+    (4..6).each { |n| inp.get.should == "test#{n}" }
+    (4..6).each { |n| inp.get.should == "test#{n}" }
+    inp.get.should == "test7"
+  end
+
   def round_check(ob)
     ob.should == Boss.load(Boss.dump(ob))
   end
