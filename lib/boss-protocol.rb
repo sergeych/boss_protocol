@@ -36,7 +36,7 @@ require 'zlib'
 # Attn! We removed Bzip2 compression for the sake of compatibility. We may add it back when situation
 # with bz2 implementations on various platforms will be eased
 #
-# 1.3 Stream mode added
+# 1.3.1 Stream mode added and fixed
 #
 # 1.2 version adds support for booelans and removes support for python __reduce__ - based objects
 #       as absolutely non portable. It also introduces
@@ -240,7 +240,7 @@ module Boss
         whdr TYPE_CREF, n
         false
       else
-        # Check stream mode
+        # Check stream mode, bin and strings only
         if @max_string_size
           if obj.is_a?(String) && obj.length <= @max_string_size
             if @cache.length > @max_cache_entries

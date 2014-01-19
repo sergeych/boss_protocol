@@ -114,12 +114,12 @@ describe 'Boss' do
       end
     end
 
-    h = MyHash.new
+    h       = MyHash.new
     h[:one] = 1
     h[:two] = 2
     round_check h
 
-    a = MyArray.new
+    a      = MyArray.new
     a["0"] = :zero
     a["1"] = :one
     round_check a
@@ -148,7 +148,8 @@ describe 'Boss' do
   end
 
   it 'should raise proper error' do
-    class MyObject; end
+    class MyObject;
+    end
     -> { Boss.dump MyObject.new }.should raise_error(Boss::NotSupportedException)
   end
 
@@ -172,6 +173,35 @@ describe 'Boss' do
     (4..6).each { |n| inp.get.should == "test#{n}" }
     (4..6).each { |n| inp.get.should == "test#{n}" }
     inp.get.should == "test7"
+
+    #src2 = "gRhQe1N0cmluZyB0b28gbG9uZ3tTdHJpbmcgdG9vIGxvbmd7U3RyaW5nIHRvbyBsb25nK3Rlc3QxK3Rlc3QyK3Rlc3QzK3Rlc3Q0K3Rlc3Q1K3Rlc3Q2DRUdDRUdK3Rlc3Q3"
+  end
+
+  it 'should work fine with big stream mode' do
+    out = Boss::Formatter.new
+    out.stream_mode 7, 500
+    src = 4096.times.map { |n| s="Long string #{n}"; out << s; s }
+    inp = Boss::Parser.new out.string
+    src.each { |s| inp.get.should == s }
+  end
+
+  it 'should parse following code' do
+    src    = 'gcAAAcAAAbwgn0XEfzTatIn6O75xqrvA5yOMHfndd8G1SiIyOj057yZzc3Rh
+    cnQgY29tbWFuZDMfQ3RvU2VyaWFsACNkYXRhDzNhbnN3ZXIjcG9uZzNzZXJp
+    YWwAHx0IJQ8rZmlsZXMWJyNuYW1lKzRoZXJvM2lzX2RpcmEjc2l6ZbiIK210
+    aW1leTZGWxaFJ02LQWRyaWFubyBDZWxlbnRhbm9dYWW4iG15O0ZbFoU9CA=='
+    parser = Boss::Parser.new(Base64::decode64 src)
+    out    = []
+    begin
+      loop {
+        out << (x=parser.get)
+      }
+    rescue EOFError
+    end
+    x=out[-1]
+    x['toSerial'].should == 1
+    x['serial'].should == 1
+    x['data']['files'].length.should == 2
   end
 
   def round_check(ob)

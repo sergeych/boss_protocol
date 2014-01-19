@@ -1,5 +1,7 @@
 # Boss Protocol
 
+Supported version: 1.3.1 (stream mode with short binaries cached)
+
 BOSS is an acronym for Binary Object Streaming Specification.
 
 The bit-effective, platform-independent streamable and traversable
