@@ -36,6 +36,8 @@ require 'zlib'
 # Attn! We removed Bzip2 compression for the sake of compatibility. We may add it back when situation
 # with bz2 implementations on various platforms will be eased
 #
+# 1.4   Stream mode not use caching. Stream mode format is changed (removed unused parameters)
+#
 # 1.3.1 Stream mode added and fixed
 #
 # 1.2 version adds support for booelans and removes support for python __reduce__ - based objects
@@ -114,19 +116,14 @@ module Boss
       @io = dst ? dst : StringIO.new('', 'wb')
       @io.set_encoding 'binary'
       @cache = { nil => 0 }
+      @stream_mode = false
     end
 
 
-    # Switch to stream mode. Stream mode limits cache using to strings only in LRU
-    # mode using specified parameters. Stream mode writes a marker into output so
-    # decoder knows it.
-    # @param max_string_size maximum allowed size of the string to be cached.
-    #        longer strings will not be cached
-    # @param max_cache_entries
-    def stream_mode max_cache_entries, max_string_size
-      @max_cache_entries, @max_string_size = max_cache_entries, max_string_size
+    # Switch to stream mode. Stream mode turns off caching.
+    def stream_mode
+      @stream_mode = true
       whdr TYPE_EXTRA, XT_STREAM_MODE
-      self << max_cache_entries.to_i << max_string_size.to_i
       @cache = { nil => 0 }
     end
 
@@ -241,25 +238,7 @@ module Boss
         false
       else
         # Check stream mode, bin and strings only
-        if @max_string_size
-          if obj.is_a?(String) && obj.length <= @max_string_size
-            if @cache.length > @max_cache_entries
-              minIndex = @cache.length - @max_cache_entries
-              key      = nil
-              @cache.each { |k, v|
-                next if k == nil
-                if v == minIndex
-                  key = k
-                else
-                  @cache[k] = v - 1
-                end
-              }
-              key == nil and raise "Cache implementation failed"
-              @cache.delete key
-            end
-            @cache[obj] = @cache.length
-          end
-        else
+        unless @stream_mode
           @cache[obj] = @cache.length
         end
         true
@@ -345,6 +324,7 @@ module Boss
       @io = src.class <= String ? StringIO.new(src) : src
       @io.set_encoding Encoding::BINARY
       @cache = [nil]
+      @stream_mode = false
     end
 
     ##
@@ -392,8 +372,7 @@ module Boss
               Time.at renc
             when XT_STREAM_MODE
               @cache = [nil]
-              @max_cache_entries = get + 1 # Count 0th element (always 0)
-              @max_string_size = get
+              @stream_mode = true
               get
             else
               raise UnknownTypeException
@@ -435,15 +414,10 @@ module Boss
 
     private
 
-    def cache_object object
+    def
+    cache_object object
       # Stream mode?
-      if @max_cache_entries
-        if object.is_a?(String) && object.length <= @max_string_size
-          # Should cache
-          @cache << object
-          @cache.delete_at(1) if @cache.length > @max_cache_entries
-        end
-      else
+      unless @stream_mode
         @cache << object
       end
     end
