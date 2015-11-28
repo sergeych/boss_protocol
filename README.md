@@ -6,7 +6,7 @@ BOSS is an acronym for Binary Object Streaming Specification.
 
 The bit-effective, platform-independent streamable and traversable
 typed binary protocol. Allow to effectively store small or any sized integers,
-strings or binary data of any size, floats and doubles, arrays and hashes in a
+strings or binary data of any size, floats and doubles, arrays and hashes and time objects in a
 very effective way. It caches repeating objects and stores/restores links to
 objects.
 
@@ -94,6 +94,9 @@ To use the transparent compression:
      => true
 
 ## Streaming sample
+
+Boss can work with any stream-like object^ e.g. pipe, file stringIO, whatever that 
+provides #eof? #read and #write methods. If the stream supprts #readbyte, it will be used instead.
 
 This sample shows boss object hierarchies passing between 2 forked processes
 using a pipe (see samples/):

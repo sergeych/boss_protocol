@@ -322,7 +322,8 @@ module Boss
     # object
     def initialize(src=nil)
       @io = src.class <= String ? StringIO.new(src) : src
-      @io.set_encoding Encoding::BINARY
+      @io.set_encoding Encoding::BINARY if @io.respond_to? :set_encoding
+      @rbyte = @io.respond_to?(:readbyte) ? -> { @io.readbyte } : -> { @io.read(1).ord }
       @cache = [nil]
       @stream_mode = false
     end
@@ -462,7 +463,7 @@ module Boss
     end
 
     def rbyte
-      @io.readbyte
+      @rbyte.call
     end
 
     def rdouble
