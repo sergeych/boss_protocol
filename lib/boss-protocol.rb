@@ -31,14 +31,15 @@ require 'zlib'
 #
 
 ##
-# Boss protocol version 1.2 basic implementation
+# Boss protocol version 1.4 full implementation
 #
-# Attn! We removed Bzip2 compression for the sake of compatibility. We may add it back when situation
-# with bz2 implementations on various platforms will be eased
+# Attentionn! Bzip2 compression was removed for the sake of compatibility.
 #
-# 1.4   Stream mode not use caching. Stream mode format is changed (removed unused parameters)
+# 1.4   Stream mode do not use caching anymore (not effective while slow).
+#       Stream mode format is changed (removed unused parameters)
 #
 # 1.3.1 Stream mode added and fixed
+# 1.3
 #
 # 1.2 version adds support for booelans and removes support for python __reduce__ - based objects
 #       as absolutely non portable. It also introduces
@@ -68,21 +69,21 @@ module Boss
   TYPE_LIST = 6
   TYPE_DICT = 7
 
-                 # Extra types:
+  # Extra types:
 
-  DZERO     = 0  #: float 0.0
-  FZERO     = 1  #: double 0.0
+  DZERO     = 0 #: float 0.0
+  FZERO     = 1 #: double 0.0
 
-  DONE      = 2  #: double 1.0
-  FONE      = 3  #: float 1.0
-  DMINUSONE = 4  #: double -1.0
-  FMINUSONE = 5  #: float  -1.0
+  DONE      = 2 #: double 1.0
+  FONE      = 3 #: float 1.0
+  DMINUSONE = 4 #: double -1.0
+  FMINUSONE = 5 #: float  -1.0
 
-  TFLOAT  = 6    #: 32-bit IEEE float
-  TDOUBLE = 7    #: 64-bit IEEE float
+  TFLOAT  = 6 #: 32-bit IEEE float
+  TDOUBLE = 7 #: 64-bit IEEE float
 
-  TOBJECT   = 8  #: object record
-  TMETHOD   = 9  #: instance method
+  TOBJECT   = 8 #: object record
+  TMETHOD   = 9 #: instance method
   TFUNCTION = 10 #: callable function
   TGLOBREF  = 11 #: global reference
 
@@ -115,7 +116,7 @@ module Boss
     def initialize(dst=nil)
       @io = dst ? dst : StringIO.new('', 'wb')
       @io.set_encoding 'binary'
-      @cache = { nil => 0 }
+      @cache       = { nil => 0 }
       @stream_mode = false
     end
 
@@ -157,7 +158,7 @@ module Boss
     # has per-instance cache so put(x) put(x) put(x)
     # will store one object and 2 more refs to it, so
     # on load time only one object will be constructed and
-    # 2 more refs will be creted.
+    # 2 more refs will be created.
     def put(ob)
       case ob
         when Fixnum, Bignum
@@ -323,8 +324,8 @@ module Boss
     def initialize(src=nil)
       @io = src.class <= String ? StringIO.new(src) : src
       @io.set_encoding Encoding::BINARY if @io.respond_to? :set_encoding
-      @rbyte = @io.respond_to?(:readbyte) ? -> { @io.readbyte } : -> { @io.read(1).ord }
-      @cache = [nil]
+      @rbyte       = @io.respond_to?(:readbyte) ? -> { @io.readbyte } : -> { @io.read(1).ord }
+      @cache       = [nil]
       @stream_mode = false
     end
 
@@ -372,7 +373,7 @@ module Boss
             when TTIME
               Time.at renc
             when XT_STREAM_MODE
-              @cache = [nil]
+              @cache       = [nil]
               @stream_mode = true
               get
             else
@@ -415,8 +416,7 @@ module Boss
 
     private
 
-    def
-    cache_object object
+    def cache_object object
       # Stream mode?
       unless @stream_mode
         @cache << object

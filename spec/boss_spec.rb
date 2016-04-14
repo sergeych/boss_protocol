@@ -101,7 +101,7 @@ describe 'Boss' do
     round_check root
   end
 
-  it 'shold encode hash/array ancestors too' do
+  it 'should encode hash/array ancestors too' do
     class MyHash < Hash
       def []= k, v
         super k.to_s, v.to_s
@@ -183,6 +183,22 @@ describe 'Boss' do
     src = 4096.times.map { |n| s="Long string #{n}"; out << s; s }
     inp = Boss::Parser.new out.string
     src.each { |s| inp.get.should == s }
+  end
+
+  it 'should work in mixed normal and stream modes' do
+    s1 = "The string"
+    out = Boss::Formatter.new
+    out << s1 << s1
+    out.stream_mode
+    out << s1 << s1
+    # p Base64.encode64(out.string)
+    input = Boss::Parser.new out.string
+    a, b, c, d = 4.times.map{input.get}
+    b.__id__.should_not == c.__id__
+    c.__id__.should_not == d.__id__
+    a.should == b
+    b.should == c
+    c.should == d
   end
 
   def round_check(ob)

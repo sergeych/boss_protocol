@@ -40,15 +40,12 @@ Supported types:
  * Boolean values (true/false)
  * UTF-8 encoded texts, any length
  * Binary data, any length
- * Time objects (date and time rounded to 1 second resolution)
- * Arrays with any number of elements
+ * Time objects (date and time with 1 second resolution)
+ * Arrays with any number of elements of any type
  * Hashes with any keys and values and unlimited length
- * Reference to the object that already was serialized
+ * Reference to the object that already was serialized (unless in stream mode)
 
-There is a pending extension to serialize user types that will be available
-soon or even faster - leave me a request in issues. There are also versions
-in C and Python that are in most part ready but are parts
-in other systems and need to be extracted first.
+There is a working JAVA implemetation also.
 
 ## Installation
 
