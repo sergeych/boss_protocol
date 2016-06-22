@@ -115,14 +115,23 @@ module Boss
     #
     def initialize(dst=nil)
       @io = dst ? dst : StringIO.new('', 'wb')
-      @io.set_encoding 'binary'
+      @io.set_encoding Encoding::BINARY if @io.respond_to? :set_encoding
       @cache       = { nil => 0 }
       @stream_mode = false
+    end
+
+    def get_stream
+      @io
     end
 
 
     # Switch to stream mode. Stream mode turns off caching.
     def stream_mode
+      set_stream_mode
+    end
+
+    # Switch to stream mode. Stream mode turns off caching.
+    def set_stream_mode
       @stream_mode = true
       whdr TYPE_EXTRA, XT_STREAM_MODE
       @cache = { nil => 0 }

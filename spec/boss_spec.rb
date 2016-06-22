@@ -126,11 +126,35 @@ describe 'Boss' do
 
   end
 
-  it 'sends and restores foobars' do
+  it 'sends and restores foobars1' do
     # stupid error
-    src = { :ref => 7, :result => { "foo" => "bar", "bardd" => "buzz", "last" => "item", "bar" => "test" }, :serial => 7 }
-    res = Boss.load(Boss.dump(src))
-    res['result']['bar'].should == 'test'
+    src = { :ref => 7, :result => { "foo" => "bar", "bardd" => "buzz", "last" => "item", "bar" => "test", arr: 10.times.map { 'bar' } }, :serial => 7 }
+    f   = Boss::Formatter.new
+    f.set_stream_mode
+    f << src
+    # p f.get_stream.string
+    encoded = f.get_stream.string
+    ins     = Boss::Parser.new(encoded)
+    ins.each { |res|
+      # p res
+      res['result']['bar'].should == 'test'
+      res['result']['arr'].should == 10.times.map { 'bar' }
+    }
+  end
+
+  it 'sends and restores foobars2' do
+    # stupid error
+    src = { :ref => 7, :result => { "foo" => "bar", "bardd" => "buzz", "last" => "item", "bar" => "test", arr: 10.times.map { 'bar' } }, :serial => 7 }
+    f   = Boss::Formatter.new
+    f << src
+    # p f.get_stream.string
+    encoded = f.get_stream.string
+    ins     = Boss::Parser.new(encoded)
+    ins.each { |res|
+      # p res
+      res['result']['arr'].should == 10.times.map { 'bar' }
+      res['result']['bar'].should == 'test'
+    }
   end
 
   it 'should effectively compress/decompress' do
@@ -193,14 +217,14 @@ describe 'Boss' do
   end
 
   it 'should work in mixed normal and stream modes' do
-    s1 = "The string"
+    s1  = "The string"
     out = Boss::Formatter.new
     out << s1 << s1
     out.stream_mode
     out << s1 << s1
     # p Base64.encode64(out.string)
-    input = Boss::Parser.new out.string
-    a, b, c, d = 4.times.map{input.get}
+    input      = Boss::Parser.new out.string
+    a, b, c, d = 4.times.map { input.get }
     b.__id__.should_not == c.__id__
     c.__id__.should_not == d.__id__
     a.should == b
