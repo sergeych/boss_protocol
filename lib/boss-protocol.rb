@@ -345,6 +345,17 @@ module Boss
     # see Boss.Formatter.put for details.
     # Note that nil is a valid restored object. Check eof? or catch
     # EOFError, or use Boss.Parser.each to read all objects from the stream
+    def read
+      get
+    end
+
+    ##
+    # Load the object (object tree) from the stream. Note that if there
+    # is more than one object in the stream that are stored with the same
+    # Formatter instance, they will share same cache and references,
+    # see Boss.Formatter.put for details.
+    # Note that nil is a valid restored object. Check eof? or catch
+    # EOFError, or use Boss.Parser.each to read all objects from the stream
     def get
       code, value = rhdr
       case code

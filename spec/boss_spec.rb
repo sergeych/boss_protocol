@@ -5,6 +5,37 @@ require 'json'
 require 'zlib'
 require 'base64'
 require 'boss-protocol'
+require 'socket'
+
+class SocketStream
+
+  def initialize socket
+    @socket = socket
+  end
+
+  def read length=1
+    # data = ''
+    # while data.length < length
+    #   data << @socket.recv(length - data.length, Socket::MSG_WAITALL)
+    # end
+    # data
+    @socket.read length
+  end
+
+  def write data
+    @socket.write data
+  end
+
+  def eof?
+    @socket.eof?
+  end
+
+  def << data
+    write data
+  end
+
+end
+
 
 describe 'Boss' do
 
@@ -230,6 +261,41 @@ describe 'Boss' do
     a.should == b
     b.should == c
     c.should == d
+  end
+  
+  it 'run interoperable' do
+    s1, s2 = Socket.pair(:UNIX, :STREAM, 0)
+
+    out = SocketStream.new(s1)
+    ins = Boss::Parser.new SocketStream.new(s2)
+
+    last = nil
+    t = Thread.start {
+      ins.each { |obj|
+        obj == nil and break
+        last= obj
+      }
+    }
+
+    out << Boss.dump( { :cmd => "foo", :args => [], :kwargs => {}, :serial => 0 })
+    out << Boss.dump({ :ref => 0, :error => { "class" => "ArgumentError", "text" => "wrong number of arguments (given 0, expected 2)" }, :serial => 0 })
+    out << Boss.dump( { :cmd => "foo", :args => [10, 20], :kwargs => {}, :serial => 1 })
+    out << Boss.dump( { :ref => 1, :result => "Foo: 30, none", :serial => 1 })
+    out << Boss.dump( { :cmd => "foo", :args => [5, 6], :kwargs => { :optional => "yes!" }, :serial => 2 })
+    out << Boss.dump( { :ref => 2, :result => "Foo: 11, yes!", :serial => 2 })
+    out << Boss.dump( { :cmd => "a", :args => [], :kwargs => {}, :serial => 3 } )
+    out << Boss.dump( { :ref => 3, :result => 5, :serial => 3 } )
+
+    out << Boss.dump( { :cmd => "b", :args => [], :kwargs => {}, :serial => 4 } )
+    out << Boss.dump( { :ref => 4, :result => 6, :serial => 4 } )
+    out << Boss.dump( { :cmd => "get_hash", :args => [], :kwargs => {}, :serial => 5 } )
+    out << Boss.dump( { :ref => 5, :result => { "foo" => "bar", "bardd" => "buzz", "last" => "item", "bar" => "test" }, :serial => 5 } )
+
+    out << Boss.dump(nil)
+    t.join
+
+    last['ref'].should == 5
+    last['result']['foo'].should == 'bar'
   end
 
   def round_check(ob)
