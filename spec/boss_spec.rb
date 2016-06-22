@@ -126,6 +126,13 @@ describe 'Boss' do
 
   end
 
+  it 'sends and restores foobars' do
+    # stupid error
+    src = { :ref => 7, :result => { "foo" => "bar", "bardd" => "buzz", "last" => "item", "bar" => "test" }, :serial => 7 }
+    res = Boss.load(Boss.dump(src))
+    res['result']['bar'].should == 'test'
+  end
+
   it 'should effectively compress/decompress' do
     # No compression
     data = "Too short"
