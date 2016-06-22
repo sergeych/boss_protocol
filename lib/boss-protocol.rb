@@ -311,7 +311,7 @@ module Boss
     ##
     # write single byte
     def wbyte(b)
-      @io.putc(b.chr)
+      @io << b.chr
     end
 
     def wdouble val
