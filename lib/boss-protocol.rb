@@ -56,6 +56,12 @@ require 'zlib'
 
 module Boss
 
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.4.0')
+    Bignum = Integer
+    Fixnum = Integer
+  end
+
+
   class NotSupportedException < StandardError;
   end
   # Basic types
@@ -96,7 +102,7 @@ module Boss
   XT_STREAM_MODE = 16
 
   def checkArg(cond, msg=nil)
-    raise ArgumentError unless cond
+    raise ArgumentError, msg unless cond
   end
 
   class UnknownTypeException < Exception;
@@ -218,7 +224,6 @@ module Boss
           wrenc ob.to_i
         else
           error = "error: not supported object: #{ob}, #{ob.class}"
-          p error
           raise NotSupportedException, error
       end
       self
@@ -543,6 +548,21 @@ module Boss
     f = f = Formatter.new
     roots.each { |r| f.put_compressed r }
     f.string
+  end
+
+  # Pack object into compressed Boss representation
+  def Boss.pack_compress(object)
+    dump_compressed object
+  end
+
+  # Pack object to the BOSS binary (same as Boss#dump)
+  def Boss.pack object
+    Boss.dump object
+  end
+
+  # Unpack object from the BOSS binary (same as Boss#load(src))
+  def Boss.unpack object
+    Boss.load object
   end
 end
 

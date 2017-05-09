@@ -298,6 +298,11 @@ describe 'Boss' do
     last['result']['foo'].should == 'bar'
   end
 
+  it 'has shortcuts' do
+    source = ['foo', 'bar', { 'hello' => 'world' }]
+    Boss.unpack(Boss.pack source).should == source
+  end
+
   def round_check(ob)
     ob.should == Boss.load(Boss.dump(ob))
   end

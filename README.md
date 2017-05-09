@@ -1,5 +1,5 @@
 # Boss Protocol
-
+ 
 Supported version: 1.4 (stream mode with no caching, regular cached mode)
 
 BOSS is an acronym for Binary Object Streaming Specification.
@@ -47,6 +47,11 @@ Supported types:
 
 There is a working JAVA implemetation also.
 
+## Latest news:
+
+ - added 2.4+ language compatibility (no more Fixnum/Bignum)
+ - added simplified Boss.pack()/Boss.unpack() interface
+ 
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -67,14 +72,14 @@ Or install it yourself as:
      => false
     1.9.3-p327 :012 > data = { 'test' => [1, 2, -1.22, 'great!'] }
      => {"test"=>[1, 2, -1.22, "great!"]}
-    1.9.3-p327 :013 > x = Boss.dump data
+    1.9.3-p327 :013 > x = Boss.pack data
      => "\x0F#test&\b\x109\x85\xEBQ\xB8\x1E\x85\xF3\xBF3great!"
-    1.9.3-p327 :014 > Marshal.dump data
+    1.9.3-p327 :014 > Marshal.unpack data
      => "\x04\b{\x06I\"\ttest\x06:\x06ET[\ti\x06i\af\n-1.22I\"\vgreat!\x06;\x00T"
 
 Note that boss representation is smaller than ruby's Marshal one
 
-    1.9.3-p327 :015 > Boss.load(x) == data
+    1.9.3-p327 :015 > Boss.unpack(x) == data
      => true
 
 To use the transparent compression:
@@ -83,11 +88,11 @@ To use the transparent compression:
      => nil
     1.9.3-p327 :014 > data.length
      => 139264
-    1.9.3-p327 :015 > x = Boss.dump_compressed(data); nil
+    1.9.3-p327 :015 > x = Boss.pack_compress(data); nil
      => nil
     1.9.3-p327 :016 > x.length
      => 147
-    1.9.3-p327 :017 > data == Boss.load(x)
+    1.9.3-p327 :017 > data == Boss.unpack(x)
      => true
 
 ## Streaming sample
